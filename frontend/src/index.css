@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+*,
+html {
+  scroll-behavior: smooth;
+}
+
+.scroll-container {
+  scrollbar-width: thin;
+  scrollbar-color: #615ef0 transparent;
+}
+.tab-active {
+  background-color: #615ef0 !important;
+  color: white;
+}
+.btn-primary {
+  background-color: #615ef0;
+  color: white;
+}
+.checkIcon:hover path {
+  stroke: #615ef0;
+}
+.btn-success:hover {
+  background-color: #96e6cb !important;
+}
