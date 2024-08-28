@@ -3,8 +3,29 @@ import Conversation from "../models/conversation.model.js";
 import { getRecieverSocket, io } from "../socket/socket.js";
 import { v2 as cloudinary } from "cloudinary";
 import LinkifyIt from "linkify-it";
+import crypto from "crypto";
+import dotenv from "dotenv";
 
+dotenv.config();
 const linkify = new LinkifyIt();
+
+const algorithm = "aes-256-cbc";
+const key = Buffer.from(process.env.ENCRYPTION_KEY, "base64");
+const iv = Buffer.from(process.env.ENCRYPTION_IV, "base64");
+
+function encrypt(text) {
+  const cipher = crypto.createCipheriv(algorithm, key, iv);
+  let encrypted = cipher.update(text, "utf8", "hex");
+  encrypted += cipher.final("hex");
+  return encrypted;
+}
+
+function decrypt(encrypted) {
+  const decipher = crypto.createDecipheriv(algorithm, key, iv);
+  let decrypted = decipher.update(encrypted, "hex", "utf8");
+  decrypted += decipher.final("utf8");
+  return decrypted;
+}
 
 export const sendMessage = async (req, res) => {
   const { id } = req.params;
@@ -35,10 +56,12 @@ export const sendMessage = async (req, res) => {
       linkUrl = links[0].url;
     }
 
+    const encryptedMessage = encrypt(message);
+
     const newMessage = new Message({
       senderId,
       receiverId: id,
-      message: message,
+      message: encryptedMessage,
       media: mediaUrl,
       link: linkUrl,
     });
@@ -50,17 +73,26 @@ export const sendMessage = async (req, res) => {
 
     await Promise.all([newMessage.save(), conversation.save()]);
 
+    const decryptedMessage = {
+      ...newMessage._doc,
+      message: decrypt(newMessage.message),
+    };
+
     const receiverSocketId = getRecieverSocket(id);
     const senderSocketId = getRecieverSocket(senderId);
 
     if (receiverSocketId) {
-      io.to(receiverSocketId).emit("newMessage", newMessage, conversation);
+      io.to(receiverSocketId).emit(
+        "newMessage",
+        decryptedMessage,
+        conversation
+      );
     }
     if (senderSocketId) {
-      io.to(senderSocketId).emit("newMessage", newMessage, conversation);
+      io.to(senderSocketId).emit("newMessage", decryptedMessage, conversation);
     }
 
-    res.status(201).json({ message: newMessage });
+    res.status(201).json({ message: decryptedMessage });
   } catch (error) {
     console.error("Error sending message", error);
     return res.status(500).json({ error: error.message });
@@ -82,6 +114,13 @@ export const fetchMessages = async (req, res) => {
 
     const messages = conversation.messages;
 
+    const decryptedMessages = messages.map((msg) => {
+      return {
+        ...msg._doc,
+        message: decrypt(msg.message),
+      };
+    });
+
     const unreadMessages = messages.filter(
       (message) => !message.readBy.includes(senderId)
     );
@@ -92,7 +131,7 @@ export const fetchMessages = async (req, res) => {
 
     await Promise.all(unreadMessages.map((message) => message.save()));
 
-    res.status(200).json({ messages });
+    res.status(200).json({ messages: decryptedMessages });
   } catch (error) {
     console.error("Error fetching messages", error);
     return res.status(500).json({ error: error.message });
@@ -151,10 +190,17 @@ export const lastMessage = async (req, res) => {
 
     const messages = conversation.messages;
 
+    const decryptedMessages = messages.map((msg) => {
+      return {
+        ...msg._doc,
+        message: decrypt(msg.message),
+      };
+    });
+
     if (messages.length === 0) {
       return res.status(200).json({ message: "" });
     }
-    const lastMessage = messages[messages.length - 1];
+    const lastMessage = decryptedMessages[decryptedMessages.length - 1];
 
     res.status(200).json({ message: lastMessage });
   } catch (error) {

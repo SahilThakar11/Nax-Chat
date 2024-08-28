@@ -22,6 +22,7 @@ const MediaArea = ({
       } flex-col xl:w-1/3 h-screen`}
     >
       <button
+        className="xl:hidden"
         onClick={(e) => {
           e.preventDefault();
           handleBack();

@@ -5,7 +5,8 @@ import { useUpdateProfile } from "../hooks/useSettings";
 const Profile = ({ authUser }) => {
   const [FullName, setFullName] = useState(authUser?.fullname);
   const [Bio, setBio] = useState(authUser?.bio);
-  const [profileImg, setProfileImg] = useState(authUser?.profileImg);
+  const [profileDisplay, setProfileDisplay] = useState(authUser?.profileImg);
+  const [profileImg, setProfileImg] = useState(null);
 
   const { updateProfile } = useUpdateProfile();
 
@@ -15,6 +16,7 @@ const Profile = ({ authUser }) => {
       const reader = new FileReader();
       reader.onload = () => {
         setProfileImg(reader.result);
+        setProfileDisplay(reader.result);
       };
       reader.readAsDataURL(file);
     }
@@ -22,7 +24,11 @@ const Profile = ({ authUser }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    updateProfile({ fullname: FullName, bio: Bio, profileImg });
+    if (profileImg) {
+      updateProfile({ fullname: FullName, bio: Bio, profileImg });
+    } else {
+      updateProfile({ fullname: FullName, bio: Bio });
+    }
   };
 
   return (
@@ -32,9 +38,9 @@ const Profile = ({ authUser }) => {
           <div className="flex items-center justify-center mb-6 relative">
             <div className="avatar">
               <div className="w-48 rounded-md ring ring-gray-300 ring-offset-base-100 ring-offset-2 bg-primary">
-                {profileImg ? (
+                {profileDisplay ? (
                   <img
-                    src={profileImg}
+                    src={profileDisplay}
                     alt="profile"
                     className="w-full h-full rounded-md"
                   />
