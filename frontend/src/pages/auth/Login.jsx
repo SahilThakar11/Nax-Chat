@@ -87,7 +87,7 @@ const Login = () => {
               </button>
             </div>
           </form>
-          <div className="divider mt-6">or</div>
+          {/* <div className="divider mt-6">or</div>
 
           <div className="form-control">
             <button className="btn btn-outline w-full flex items-center justify-center">
@@ -98,7 +98,7 @@ const Login = () => {
               />
               Sign in with Google
             </button>
-          </div>
+          </div> */}
 
           <div className="mt-2 text-center">
             <span className="text-sm text-gray-600">
