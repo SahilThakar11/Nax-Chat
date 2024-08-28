@@ -51,7 +51,7 @@ const Profile = ({ authUser }) => {
                 )}
               </div>
             </div>
-            <button className="absolute -bottom-7 right-[13.5rem] p-2 bg-gray-100 border-2 rounded-full text-white cursor-pointer">
+            <button className="flex justify-center mt-2 items-center p-2 bg-gray-100 border-2 rounded-full text-white cursor-pointer">
               <input
                 type="file"
                 accept="image/*"
@@ -61,7 +61,11 @@ const Profile = ({ authUser }) => {
                 className="cursor-pointer"
               />
               <label htmlFor="fileInput">
-                <img src={camera} alt="camera" className="w-8 cursor-pointer" />
+                <img
+                  src={camera}
+                  alt="camera"
+                  className="w-10 cursor-pointer"
+                />
               </label>
             </button>
           </div>
